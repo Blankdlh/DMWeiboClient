@@ -1,0 +1,83 @@
+//
+//  CustomStatusBar.m
+//  ZFSoftForIOS
+//
+//  Created by Blank on 12-12-18.
+//
+//
+#import <UIKit/UIKit.h>
+#import "CustomStatusBar.h"
+static CustomStatusBar *statusBar;
+
+@interface CustomStatusBar ()
+@property (nonatomic, retain) UILabel *statusMsgLabel;
+
+@end
+
+@implementation CustomStatusBar
+@synthesize statusMsgLabel = _statusMsgLabel;
+
+- (void)dealloc
+{
+    [_statusMsgLabel release], self.statusMsgLabel = nil;
+
+    [super dealloc];
+}
+
+- (id)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.windowLevel = UIWindowLevelStatusBar + 1.0f;
+		self.frame = [UIApplication sharedApplication].statusBarFrame;
+        self.backgroundColor = [UIColor blackColor];
+        
+        _statusMsgLabel = [[UILabel alloc] initWithFrame:self.frame];
+        _statusMsgLabel.backgroundColor = [UIColor clearColor];
+        _statusMsgLabel.textColor = [UIColor whiteColor];
+        _statusMsgLabel.font = [UIFont systemFontOfSize:12.0f];
+        _statusMsgLabel.textAlignment = UITextAlignmentCenter;
+        [self addSubview:_statusMsgLabel];
+    }
+    return self;
+}
+
++ (void)showStatusMessage:(NSString *)message autoDismiss:(BOOL)autoDismiss
+{
+    if (statusBar == nil) {
+        statusBar = [[CustomStatusBar alloc] initWithFrame:CGRectZero];
+    }
+    statusBar.hidden = NO;
+    statusBar.alpha = 1.0f;
+    statusBar.statusMsgLabel.text = @"";
+    
+    CGSize totalSize = statusBar.frame.size;
+    statusBar.frame = (CGRect){ statusBar.frame.origin, totalSize.width, totalSize.height};
+    statusBar.statusMsgLabel.text = message;
+    statusBar.statusMsgLabel.frame = (CGRect){ statusBar.frame.origin.x,-statusBar.frame.size.height, statusBar.frame.size};
+    [UIView animateWithDuration:0.5f animations:^{
+        statusBar.statusMsgLabel.frame = statusBar.frame;
+    } completion:^(BOOL finished){
+        if (autoDismiss) {
+            [CustomStatusBar performSelector:@selector(hide) withObject:nil afterDelay:2];
+        }
+
+    }];
+}
+
++ (void)hide
+{
+    if (statusBar == nil) {
+        statusBar = [[CustomStatusBar alloc] initWithFrame:CGRectZero];
+    }
+    statusBar.alpha = 1.0f;
+    
+    [UIView animateWithDuration:0.5f animations:^{
+        statusBar.alpha = 0.0f;
+    } completion:^(BOOL finished){
+        statusBar.statusMsgLabel.text = @"";
+        statusBar.hidden = YES;
+    }];;
+}
+
+@end
